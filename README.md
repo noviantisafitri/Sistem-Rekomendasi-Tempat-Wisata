@@ -90,6 +90,7 @@ Model dievaluasi menggunakan Root Mean Squared Error (RMSE) dan Loss pada data t
 - Visualisasi loss menunjukkan hasil serupa.
 
 **Formula RMSE:**
+
 RMSE = sqrt((1/n) * sum((y_true - y_pred)^2))
 
 RMSE mengukur seberapa jauh prediksi model dari nilai rating sebenarnya. Semakin rendah nilai RMSE, semakin baik performa model.
