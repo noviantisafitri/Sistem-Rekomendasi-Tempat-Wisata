@@ -37,109 +37,155 @@ Referensi:
 
 ## Data Understanding
 
-Dataset terdiri dari dua file utama:
-- `tourism_with_id.csv`: berisi informasi tempat wisata (437 entri).
-- `tourism_rating.csv`: berisi data rating pengguna terhadap tempat wisata (10.000 entri).
+Dataset yang digunakan terdiri dari dua file utama, yaitu:
 
-Link dataset: [Kaggle - Indonesia Tourism Destination](https://www.kaggle.com/datasets/aprabowo/indonesia-tourism-destination)
+1. **`tourism_with_id.csv`** – berisi informasi tentang 437 tempat wisata di Indonesia.
+2. **`tourism_rating.csv`** – berisi 10.000 data penilaian dari pengguna terhadap tempat wisata tersebut.
 
-Fitur pada `tourism_with_id.csv`:
-- Place_Id, Place_Name, Description, Category, City, Price, Rating, Time_Minutes, Coordinate, Lat, Long
+Dataset dapat diunduh dari [Kaggle - Indonesia Tourism Destination](https://www.kaggle.com/datasets/aprabowo/indonesia-tourism-destination).
 
-Fitur pada `tourism_rating.csv`:
-- User_Id, Place_Id, Place_Ratings
+### Fitur pada `tourism_with_id.csv` (sebelum preprocessing):
 
-Fitur lengkap pada `tourism_with_id.csv` sebelum preprocessing adalah sebagai berikut:
-- `Place_Id`: ID unik untuk setiap tempat wisata.
-- `Place_Name`: Nama tempat wisata.
-- `Description`: Deskripsi singkat mengenai tempat wisata.
-- `Category`: Jenis atau kategori dari tempat wisata, seperti taman hiburan, wisata alam, dll.
-- `City`: Kota di mana tempat wisata tersebut berada.
-- `Price`: Biaya masuk atau harga tiket tempat wisata.
-- `Rating`: Penilaian rata-rata pengguna terhadap tempat wisata.
-- `Time_Minutes`: Estimasi waktu kunjungan (dalam menit).
-- `Coordinate`: Informasi koordinat dalam format dictionary.
-- `Lat`: Lintang geografis tempat wisata.
-- `Long`: Bujur geografis tempat wisata.
-- `Unnamed: 11`: Kolom kosong tanpa nilai (null seluruh baris).
-- `Unnamed: 12`: Duplikat numerik dari `Place_Id`, kemungkinan error saat ekspor dataset.
+| Nama Kolom     | Tipe Data | Deskripsi                                                                 |
+| -------------- | --------- | ------------------------------------------------------------------------- |
+| `Place_Id`     | int64     | ID unik untuk setiap tempat wisata.                                       |
+| `Place_Name`   | object    | Nama tempat wisata.                                                       |
+| `Description`  | object    | Deskripsi singkat tentang tempat wisata.                                  |
+| `Category`     | object    | Kategori tempat wisata (misal: Budaya, Taman Hiburan, Bahari, dll).       |
+| `City`         | object    | Kota lokasi tempat wisata.                                                |
+| `Price`        | int64     | Harga tiket masuk tempat wisata.                                          |
+| `Rating`       | float64   | Rata-rata penilaian pengguna terhadap tempat wisata.                      |
+| `Time_Minutes` | float64   | Estimasi waktu kunjungan (hanya tersedia pada sebagian entri).            |
+| `Coordinate`   | object    | Informasi koordinat dalam bentuk dictionary (lat, long).                  |
+| `Lat`          | float64   | Lintang geografis tempat wisata.                                          |
+| `Long`         | float64   | Bujur geografis tempat wisata.                                            |
+| `Unnamed: 11`  | float64   | Kolom kosong (null seluruh baris), tidak digunakan dalam analisis.        |
+| `Unnamed: 12`  | int64     | Salinan numerik dari `Place_Id`, kemungkinan hasil kesalahan ekspor data. |
 
-EDA menunjukkan bahwa rata-rata rating yang diberikan adalah 3.07 dengan sebaran yang relatif merata. Kolom kosong dan tidak relevan dihapus untuk meningkatkan kualitas data.
+### Fitur pada `tourism_rating.csv`:
+
+| Nama Kolom      | Tipe Data | Deskripsi                                         |
+| --------------- | --------- | ------------------------------------------------- |
+| `User_Id`       | int64     | ID pengguna yang memberikan rating.               |
+| `Place_Id`      | int64     | ID tempat wisata yang diberi rating.              |
+| `Place_Ratings` | int64     | Nilai rating yang diberikan pengguna (skala 1–5). |
+
+* Jumlah entri tempat wisata: **437**
+* Jumlah data rating: **10.000**
+* Rata-rata nilai rating: **3.07**
+* Nilai rating berkisar dari **1 hingga 5**, dengan distribusi relatif merata.
 
 ## Data Preparation
 
-- Menghapus kolom yang tidak relevan seperti Description, Coordinate, dan kolom kosong.
-- Mengecek nilai kosong dan duplikat pada dataset.
-- Normalisasi rating untuk collaborative filtering agar sesuai dengan aktivasi sigmoid.
-- Encoding User_Id dan Place_Id menjadi indeks numerik.
-- Duplikat data pada `df_ratings` dihapus menggunakan `df_ratings.drop_duplicates()` untuk menghindari bias pada model.
-- TF-IDF Vectorization diterapkan pada fitur `Category` untuk mengubah data teks menjadi representasi numerik sebelum modeling.
-- Dataset `df_ratings` dibagi menjadi data latih dan data validasi (80:20) untuk mengevaluasi performa model Collaborative Filtering secara objektif.
+Tahap persiapan data dilakukan untuk memastikan bahwa dataset bersih, relevan, dan siap digunakan dalam proses pelatihan model. Berikut adalah langkah-langkah yang dilakukan:
 
-Tahapan ini penting untuk memastikan data bersih dan siap digunakan oleh model pembelajaran mesin.
+1. **Menghapus Kolom Tidak Relevan**
+   Beberapa kolom seperti `Description`, `Coordinate`, `Unnamed: 11`, dan `Unnamed: 12` dihapus karena tidak memberikan kontribusi signifikan terhadap model atau mengandung nilai kosong sepenuhnya.
+
+2. **Menangani Nilai Kosong dan Duplikat**
+   Dataset dicek untuk nilai kosong dan duplikat. Pada `df_ratings`, ditemukan adanya data duplikat dan diatasi menggunakan fungsi `df_ratings.drop_duplicates()` untuk menghindari bias dalam pembelajaran model.
+
+3. **Encoding Fitur Kategorikal**
+   Kolom `User_Id` dan `Place_Id` diubah menjadi indeks numerik (integer encoding) agar dapat digunakan dalam model Collaborative Filtering berbasis embedding.
+
+4. **TF-IDF Vectorization (Content-Based Filtering)**
+   Fitur `Category` dari `df_places` diolah menggunakan teknik **TF-IDF Vectorization**. Proses ini mengubah data teks kategori menjadi representasi numerik berbasis frekuensi, yang kemudian digunakan dalam perhitungan cosine similarity antar tempat wisata.
+
+5. **Normalisasi Rating**
+   Nilai rating pada `Place_Ratings` dinormalisasi ke rentang 0–1 agar sesuai dengan fungsi aktivasi `sigmoid` pada model Collaborative Filtering.
+
+6. **Pembagian Data Latih dan Validasi**
+   Dataset `df_ratings` dibagi menjadi data latih dan data validasi dengan rasio 80:20 menggunakan indeks slicing. Ini bertujuan untuk mengevaluasi kemampuan generalisasi model terhadap data yang belum pernah dilihat sebelumnya.
 
 ## Modeling
+Pada tahap ini, dilakukan pembangunan dua sistem rekomendasi berbeda: **Content-Based Filtering** dan **Collaborative Filtering**. Setiap pendekatan dirancang untuk menghasilkan rekomendasi tempat wisata yang relevan berdasarkan data yang tersedia.
 
 ### Content-Based Filtering
-Menggunakan TF-IDF Vectorizer pada fitur Category untuk membentuk matriks fitur, lalu dihitung cosine similarity antar tempat. Fungsi rekomendasi dibuat untuk menghasilkan top-5 tempat terdekat berdasarkan kemiripan.
+
+Sistem rekomendasi ini bekerja dengan cara menganalisis kemiripan antar tempat wisata berdasarkan fitur konten, yaitu **kategori wisata**. Sebelumnya, fitur `Category` telah dikonversi ke dalam representasi numerik menggunakan teknik **TF-IDF Vectorization** (proses ini dijelaskan pada bagian *Data Preparation*). Setelah itu, kemiripan antar tempat dihitung menggunakan metode **Cosine Similarity**.
+
+Fungsi rekomendasi kemudian mengembalikan daftar Top-5 tempat yang paling mirip dengan tempat yang dipilih pengguna.
 
 **Kelebihan:**
-- Tidak bergantung pada data pengguna lain.
-- Dapat bekerja meskipun pengguna baru (cold start).
+
+* Tidak memerlukan data pengguna lain.
+* Cocok untuk pengguna baru (*cold-start* user) karena hanya bergantung pada konten.
 
 **Kekurangan:**
-- Rekomendasi terbatas pada informasi yang sudah dimiliki.
 
-Berikut contoh hasil rekomendasi Top-5 dari Content-Based Filtering berdasarkan tempat 'Monumen Nasional':
-| No | Place_Name                             | Category |
-|----|----------------------------------------|----------|
-| 1  | Candi Sewu                             | Budaya   |
-| 2  | Museum Benteng Vredeburg Yogyakarta    | Budaya   |
-| 3  | Museum Satria Mandala                  | Budaya   |
-| 4  | Kyotoku Floating Market                | Budaya   |
-| 5  | Bandros City Tour                      | Budaya   |
+* Rekomendasi terbatas pada informasi yang tersedia.
+* Tidak mempertimbangkan preferensi pengguna lain.
+
+**Contoh Output (Top-5 rekomendasi untuk tempat: "Monumen Nasional"):**
+
+| No | Place\_Name                         | Category |
+| -- | ----------------------------------- | -------- |
+| 1  | Candi Sewu                          | Budaya   |
+| 2  | Museum Benteng Vredeburg Yogyakarta | Budaya   |
+| 3  | Museum Satria Mandala               | Budaya   |
+| 4  | Kyotoku Floating Market             | Budaya   |
+| 5  | Bandros City Tour                   | Budaya   |
+
 
 ### Collaborative Filtering
-Menggunakan model deep learning berbasis embedding untuk pengguna dan tempat. Model dilatih dengan data rating yang dinormalisasi dan menggunakan fungsi loss BinaryCrossentropy.
+
+Sistem ini menggunakan pendekatan **deep learning berbasis embedding** untuk merepresentasikan pengguna dan tempat dalam bentuk vektor. Model dilatih menggunakan data `Place_Ratings` yang telah dinormalisasi dan menggunakan fungsi loss **BinaryCrossentropy**.
+
+Setelah pelatihan, model digunakan untuk memprediksi tempat-tempat yang mungkin disukai oleh pengguna berdasarkan interaksi pengguna serupa.
 
 **Kelebihan:**
-- Dapat menangkap pola preferensi pengguna dari data interaksi.
+
+* Dapat menemukan pola tersembunyi dari interaksi pengguna.
+* Lebih fleksibel dalam memahami hubungan kompleks antara pengguna dan item.
 
 **Kekurangan:**
-- Membutuhkan banyak data interaksi.
-- Rentan terhadap cold-start user.
 
-Hasil rekomendasi Top-5 dari Collaborative Filtering untuk pengguna acak:
-| No | Place_Name                          | Category       |
-|----|-------------------------------------|----------------|
-| 1  | Monumen Yogya Kembali               | Budaya         |
-| 2  | Bukit Bintang Yogyakarta            | Taman Hiburan  |
-| 3  | Grojogan Watu Purbo Bangunrejo      | Taman Hiburan  |
-| 4  | Keraton Surabaya                    | Budaya         |
-| 5  | Monumen Tugu Pahlawan               | Budaya         |
-| 6  | House of Sampoerna                  | Budaya         |
-| 7  | Taman Hiburan Rakyat                | Taman Hiburan  |
-| 8  | Taman Mundu                         | Taman Hiburan  |
-| 9  | Museum Mpu Tantular                 | Budaya         |
-| 10 | Taman Air Mancur Menari Kenjeran    | Taman Hiburan  | 
+* Membutuhkan banyak data interaksi untuk performa optimal.
+* Kurang cocok untuk pengguna baru atau tempat baru (*cold-start* problem).
+
+**Contoh Output (Top-10 rekomendasi untuk salah satu pengguna):**
+
+| No | Place\_Name                      | Category      |
+| -- | -------------------------------- | ------------- |
+| 1  | Monumen Yogya Kembali            | Budaya        |
+| 2  | Bukit Bintang Yogyakarta         | Taman Hiburan |
+| 3  | Grojogan Watu Purbo Bangunrejo   | Taman Hiburan |
+| 4  | Keraton Surabaya                 | Budaya        |
+| 5  | Monumen Tugu Pahlawan            | Budaya        |
+| 6  | House of Sampoerna               | Budaya        |
+| 7  | Taman Hiburan Rakyat             | Taman Hiburan |
+| 8  | Taman Mundu                      | Taman Hiburan |
+| 9  | Museum Mpu Tantular              | Budaya        |
+| 10 | Taman Air Mancur Menari Kenjeran | Taman Hiburan |
 
 ## Evaluation
 
-Model dievaluasi menggunakan Root Mean Squared Error (RMSE) dan Loss pada data training dan validation.
+Model **Collaborative Filtering** dievaluasi menggunakan dua metrik utama, yaitu:
 
-- RMSE pada training terus menurun, sedangkan validation stabil, menandakan overfitting ringan.
-- Visualisasi loss menunjukkan hasil serupa.
+1. **Root Mean Squared Error (RMSE)**
+2. **Loss (Binary Crossentropy)**
 
-**Formula RMSE:**
+### Penjelasan Metrik
 
-RMSE = sqrt((1/n) * sum((y_true - y_pred)^2))
+**Root Mean Squared Error (RMSE)** digunakan untuk mengukur seberapa jauh prediksi model terhadap nilai rating yang sebenarnya. Rumus perhitungannya adalah:
 
-RMSE mengukur seberapa jauh prediksi model dari nilai rating sebenarnya. Semakin rendah nilai RMSE, semakin baik performa model.
+$$
+\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n}(y_{true}^{(i)} - y_{pred}^{(i)})^2}
+$$
 
-Hasil akhir dari evaluasi model Collaborative Filtering:
-- **Validation RMSE**: 0.3515
-- **Validation Loss**: 0.6962
--
-Nilai-nilai ini menunjukkan bahwa model cukup mampu memprediksi rating dengan kesalahan yang relatif rendah setelah data dinormalisasi.
+Semakin kecil nilai RMSE, semakin baik kualitas prediksi model.
+
+**Loss** dihitung menggunakan fungsi **Binary Crossentropy** karena output model berada dalam skala \[0,1] hasil dari aktivasi sigmoid. Loss ini menunjukkan seberapa besar kesalahan model dalam memetakan prediksi terhadap nilai target.
+
+### Hasil Evaluasi
+
+Berdasarkan pelatihan model dan proses validasi, diperoleh hasil akhir sebagai berikut:
+
+* **Validation RMSE**: `0.3515`
+* **Validation Loss**: `0.6962`
+
+### Analisis Hasil
+
+Nilai RMSE yang relatif rendah menunjukkan bahwa model mampu memprediksi rating dengan cukup akurat setelah proses normalisasi. Sementara itu, stabilnya nilai Loss pada data validasi dibandingkan dengan penurunan Loss pada data pelatihan menunjukkan adanya **overfitting ringan**, namun masih dalam batas yang dapat diterima. Secara keseluruhan, model Collaborative Filtering berhasil membangun sistem rekomendasi dengan performa yang baik untuk skala dataset ini.
 
 ---
