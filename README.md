@@ -28,9 +28,7 @@ Referensi:
 - Membangun sistem rekomendasi yang dapat menyarankan tempat wisata berdasarkan kategori yang disukai pengguna.
 - Mengembangkan model yang mampu merekomendasikan tempat wisata berdasarkan pola rating dari pengguna lain.
 
-### Solution Approach
-
-#### Solution Statements
+### Solution Statements
 
 - Content-Based Filtering: merekomendasikan tempat wisata berdasarkan kemiripan kategori wisata yang pernah disukai pengguna.
 - Collaborative Filtering: mempelajari pola rating antar pengguna untuk merekomendasikan tempat yang disukai pengguna serupa.
