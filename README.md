@@ -49,6 +49,21 @@ Fitur pada `tourism_with_id.csv`:
 Fitur pada `tourism_rating.csv`:
 - User_Id, Place_Id, Place_Ratings
 
+Fitur lengkap pada `tourism_with_id.csv` sebelum preprocessing adalah sebagai berikut:
+- `Place_Id`: ID unik untuk setiap tempat wisata.
+- `Place_Name`: Nama tempat wisata.
+- `Description`: Deskripsi singkat mengenai tempat wisata.
+- `Category`: Jenis atau kategori dari tempat wisata, seperti taman hiburan, wisata alam, dll.
+- `City`: Kota di mana tempat wisata tersebut berada.
+- `Price`: Biaya masuk atau harga tiket tempat wisata.
+- `Rating`: Penilaian rata-rata pengguna terhadap tempat wisata.
+- `Time_Minutes`: Estimasi waktu kunjungan (dalam menit).
+- `Coordinate`: Informasi koordinat dalam format dictionary.
+- `Lat`: Lintang geografis tempat wisata.
+- `Long`: Bujur geografis tempat wisata.
+- `Unnamed: 11`: Kolom kosong tanpa nilai (null seluruh baris).
+- `Unnamed: 12`: Duplikat numerik dari `Place_Id`, kemungkinan error saat ekspor dataset.
+
 EDA menunjukkan bahwa rata-rata rating yang diberikan adalah 3.07 dengan sebaran yang relatif merata. Kolom kosong dan tidak relevan dihapus untuk meningkatkan kualitas data.
 
 ## Data Preparation
@@ -57,6 +72,9 @@ EDA menunjukkan bahwa rata-rata rating yang diberikan adalah 3.07 dengan sebaran
 - Mengecek nilai kosong dan duplikat pada dataset.
 - Normalisasi rating untuk collaborative filtering agar sesuai dengan aktivasi sigmoid.
 - Encoding User_Id dan Place_Id menjadi indeks numerik.
+- Duplikat data pada `df_ratings` dihapus menggunakan `df_ratings.drop_duplicates()` untuk menghindari bias pada model.
+- TF-IDF Vectorization diterapkan pada fitur `Category` untuk mengubah data teks menjadi representasi numerik sebelum modeling.
+- Dataset `df_ratings` dibagi menjadi data latih dan data validasi (80:20) untuk mengevaluasi performa model Collaborative Filtering secara objektif.
 
 Tahapan ini penting untuk memastikan data bersih dan siap digunakan oleh model pembelajaran mesin.
 
@@ -72,6 +90,15 @@ Menggunakan TF-IDF Vectorizer pada fitur Category untuk membentuk matriks fitur,
 **Kekurangan:**
 - Rekomendasi terbatas pada informasi yang sudah dimiliki.
 
+Berikut contoh hasil rekomendasi Top-5 dari Content-Based Filtering berdasarkan tempat 'Monumen Nasional':
+| No | Place_Name                             | Category |
+|----|----------------------------------------|----------|
+| 1  | Candi Sewu                             | Budaya   |
+| 2  | Museum Benteng Vredeburg Yogyakarta    | Budaya   |
+| 3  | Museum Satria Mandala                  | Budaya   |
+| 4  | Kyotoku Floating Market                | Budaya   |
+| 5  | Bandros City Tour                      | Budaya   |
+
 ### Collaborative Filtering
 Menggunakan model deep learning berbasis embedding untuk pengguna dan tempat. Model dilatih dengan data rating yang dinormalisasi dan menggunakan fungsi loss BinaryCrossentropy.
 
@@ -81,6 +108,20 @@ Menggunakan model deep learning berbasis embedding untuk pengguna dan tempat. Mo
 **Kekurangan:**
 - Membutuhkan banyak data interaksi.
 - Rentan terhadap cold-start user.
+
+Hasil rekomendasi Top-5 dari Collaborative Filtering untuk pengguna acak:
+| No | Place_Name                          | Category       |
+|----|-------------------------------------|----------------|
+| 1  | Monumen Yogya Kembali               | Budaya         |
+| 2  | Bukit Bintang Yogyakarta            | Taman Hiburan  |
+| 3  | Grojogan Watu Purbo Bangunrejo      | Taman Hiburan  |
+| 4  | Keraton Surabaya                    | Budaya         |
+| 5  | Monumen Tugu Pahlawan               | Budaya         |
+| 6  | House of Sampoerna                  | Budaya         |
+| 7  | Taman Hiburan Rakyat                | Taman Hiburan  |
+| 8  | Taman Mundu                         | Taman Hiburan  |
+| 9  | Museum Mpu Tantular                 | Budaya         |
+| 10 | Taman Air Mancur Menari Kenjeran    | Taman Hiburan  | 
 
 ## Evaluation
 
@@ -94,5 +135,11 @@ Model dievaluasi menggunakan Root Mean Squared Error (RMSE) dan Loss pada data t
 RMSE = sqrt((1/n) * sum((y_true - y_pred)^2))
 
 RMSE mengukur seberapa jauh prediksi model dari nilai rating sebenarnya. Semakin rendah nilai RMSE, semakin baik performa model.
+
+Hasil akhir dari evaluasi model Collaborative Filtering:
+- **Validation RMSE**: 0.3515
+- **Validation Loss**: 0.6962
+-
+Nilai-nilai ini menunjukkan bahwa model cukup mampu memprediksi rating dengan kesalahan yang relatif rendah setelah data dinormalisasi.
 
 ---
